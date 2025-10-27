@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 import aws_cdk as cdk
+import os
 from route_optimization_stack import RouteOptimizationStack
 
 app = cdk.App()
 
-RouteOptimizationStack(
-    app, 
-    "RouteOptimizationStack",
-    env=cdk.Environment(
-        account="593793054391",
-        region="ap-south-1"
-    )
+env = cdk.Environment(
+    account=os.getenv("CDK_DEFAULT_ACCOUNT"),
+    region=os.getenv("CDK_DEFAULT_REGION")
 )
+
+RouteOptimizationStack(app, "RouteOptimizationStack", env=env)
 
 app.synth()
