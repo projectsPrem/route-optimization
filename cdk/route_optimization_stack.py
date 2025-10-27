@@ -43,7 +43,7 @@ class RouteOptimizationStack(Stack):
         elasticbeanstalk.CfnEnvironment(self, "FlaskEnvironment",
             environment_name="route-optimization-env",
             application_name=app.application_name,
-            solution_stack_name="64bit Amazon Linux 2023 running Python 3.11",
+            platform_arn="arn:aws:elasticbeanstalk:ap-south-1::platform/Python 3.11 running on 64bit Amazon Linux 2023/5.0.4",
             option_settings=[
                 elasticbeanstalk.CfnEnvironment.OptionSettingProperty(
                     namespace="aws:autoscaling:launchconfiguration",
