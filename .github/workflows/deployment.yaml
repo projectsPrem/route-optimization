@@ -1,0 +1,55 @@
+name: Deploy Flask App via CDK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (CDK CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Print AWS Account
+        run: aws sts get-caller-identity
+
+      - name: Install CDK and Python deps
+        run: |
+          npm install -g aws-cdk
+          pip install aws-cdk-lib constructs boto3
+
+      - name: Build Flask App
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: CDK Bootstrap (if needed)
+        working-directory: cdk
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          cdk bootstrap aws://$ACCOUNT_ID/ap-south-1
+
+      - name: Deploy Stack
+        working-directory: cdk
+        run: |
+          cdk deploy --require-approval never
