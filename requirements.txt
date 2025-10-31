@@ -1,2 +1,5 @@
 flask
 openrouteservice
+boto3
+flask_cors
+dotenv
