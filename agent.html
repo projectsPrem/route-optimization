@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent Dashboard - Delivery Logistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        .map-pin {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .map-pin.highlight {
+            stroke: #f59e0b; /* amber-500 */
+            stroke-width: 4;
+            transform-origin: center;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.8;
+            }
+        }
+        .map-pin:hover {
+            transform: scale(1.2);
+            transform-origin: center;
+        }
+        /* Custom scrollbar for stops list */
+        #stops-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        #stops-list::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+            border-radius: 10px;
+        }
+        #stops-list::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 */
+            border-radius: 10px;
+        }
+        #stops-list::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+        #map-container {
+            height: 100%;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<header class="bg-gray-800 text-white shadow-lg">
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-blue-400">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 2.25 12v-1.5a3.375 3.375 0 0 0 3.375-3.375H5.25l2.25-4.5h3.875a3.375 3.375 0 0 1 3.375 3.375v1.5" />
+            </svg>
+            <h1 class="text-2xl font-bold">Delivery Logistics</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="welcome-message" class="hidden sm:block"></span>
+            <button id="logout-btn" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 transition-colors">Logout</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container mx-auto p-4 sm:p-6 lg:p-8">
+    <div id="loader" class="flex flex-col items-center justify-center p-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="mt-4 text-gray-600">Loading your route...</p>
+    </div>
+
+    <div id="no-route-message" class="hidden text-center text-gray-600 p-8 bg-white rounded-lg shadow-md">
+        <p class="text-xl">No route assigned to you at the moment.</p>
+        <p class="mt-2">Please check back later.</p>
+    </div>
+
+    <div id="dashboard-content" class="hidden grid-cols-1 lg:grid-cols-5 gap-8">
+        <!-- Left Column: Stops List -->
+        <div class="lg:col-span-2 space-y-4">
+            <h2 class="text-2xl font-bold text-gray-800">Today's Deliveries</h2>
+            <div id="stops-list" class="space-y-4 h-[75vh] overflow-y-auto pr-2">
+                <!-- Stops will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Right Column: Map and Route Info -->
+        <div class="lg:col-span-3 space-y-6">
+            <div id="route-info" class="bg-white p-6 rounded-lg shadow-md">
+                <!-- Route summary will be dynamically inserted here -->
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <div id="map-container" class="bg-gray-200 aspect-video rounded-lg shadow-inner relative overflow-hidden">
+                    <!-- Leaflet Map will be rendered here by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Pop-up Modal -->
+<div id="popup-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div id="modal-icon-container" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full"></div>
+            <h3 id="modal-title" class="text-lg leading-6 font-medium text-gray-900"></h3>
+            <div class="mt-2 px-7 py-3">
+                <p id="modal-message" class="text-sm text-gray-500"></p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="modal-close-btn" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const API_URL = 'http://127.0.0.1:5001';
+
+    // Page elements
+    const welcomeMessage = document.getElementById('welcome-message');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loader = document.getElementById('loader');
+    const noRouteMessage = document.getElementById('no-route-message');
+    const dashboardContent = document.getElementById('dashboard-content');
+    const routeInfoContainer = document.getElementById('route-info');
+    const stopsListContainer = document.getElementById('stops-list');
+    const mapContainer = document.getElementById('map-container');
+    
+    // Modal elements
+    const modal = document.getElementById('popup-modal');
+    const modalIconContainer = document.getElementById('modal-icon-container');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+
+    const successIcon = `<svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+    const errorIcon = `<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+    
+    let map = null;
+    let markers = {};
+
+    function showModal(title, message, isError = false) {
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modalIconContainer.innerHTML = isError ? errorIcon : successIcon;
+        modalIconContainer.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full ${isError ? 'bg-red-100' : 'bg-green-100'}`;
+        modal.classList.remove('hidden');
+    }
+
+    function hideModal() {
+        modal.classList.add('hidden');
+    }
+
+    function checkAuth() {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'customer') {
+            window.location.href = 'customer.html';
+            return;
+        }
+        
+        const userName = localStorage.getItem('userName');
+        welcomeMessage.textContent = `Welcome, ${userName || 'Agent'}!`;
+    }
+
+    function handleLogout() {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
+
+    function getStatusBadge(status) {
+        const styles = {
+            'pending': 'bg-yellow-100 text-yellow-800',
+            'assigned': 'bg-blue-100 text-blue-800',
+            'in_progress': 'bg-indigo-100 text-indigo-800',
+            'delivered': 'bg-green-100 text-green-800',
+        };
+        const style = styles[status] || 'bg-gray-100 text-gray-800';
+        const text = (status || 'unknown').replace('_', ' ').toUpperCase();
+        return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${style}">${text}</span>`;
+    }
+
+    function renderRouteInfo(route) {
+        routeInfoContainer.innerHTML = `
+            <div class="flex flex-wrap justify-between items-baseline gap-4">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Route ID</h3>
+                    <p class="text-2xl font-bold text-gray-800">${route.id}</p>
+                </div>
+                <div class="flex space-x-6 text-gray-600 text-right">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Stops</h3>
+                        <p class="font-semibold text-lg">${route.stops.length}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Est. Distance</h3>
+                        <p class="font-semibold text-lg">${route.distance}</p>
+                    </div>
+                     <div>
+                        <h3 class="text-sm font-medium text-gray-500">Est. Time</h3>
+                        <p class="font-semibold text-lg">${route.eta}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderStopsList(stops) {
+        stopsListContainer.innerHTML = '';
+        const stopsForList = [...stops].sort((a,b) => (a.status === 'delivered') - (b.status === 'delivered'));
+
+        stopsForList.forEach((stop, index) => {
+            const stopElement = document.createElement('div');
+            stopElement.className = `bg-white p-4 rounded-lg shadow-md flex flex-col gap-4 transition-opacity ${stop.status === 'delivered' ? 'opacity-60' : ''}`;
+            stopElement.id = `stop-card-${stop.id}`;
+            stopElement.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">${index + 1}</div>
+                        <div>
+                            <div class="flex items-center gap-3">
+                              <h3 class="font-bold text-gray-800">${stop.id}</h3>
+                              ${getStatusBadge(stop.status)}
+                            </div>
+                            <div class="mt-2 text-sm text-gray-600 space-y-1">
+                                <p><span class="font-semibold">From:</span> ${stop.pickup}</p>
+                                <p><span class="font-semibold">To:</span> ${stop.dropoff}</p>
+                            </div>
+                        </div>
+                    </div>
+                     <button title="View on map" data-stop-id="${stop.id}" class="view-on-map-btn text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+                    </button>
+                </div>
+                ${stop.status !== 'delivered' ? `
+                <button 
+                  data-order-id="${stop.id}"
+                  class="update-status-btn w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 disabled:bg-gray-400"
+                >
+                    Mark as Delivered
+                </button>
+                ` : ''}
+            `;
+            stopsListContainer.appendChild(stopElement);
+        });
+    }
+
+    function renderMapView(stops) {
+        if (map) {
+            map.remove();
+            map = null;
+        }
+        
+        map = L.map('map-container');
+        markers = {};
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        const latlngs = [];
+        
+        const blueIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        const greenIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        const generateCoords = (id) => {
+            let hash = 0;
+            for (let i = 0; i < id.length; i++) {
+                hash = ((hash << 5) - hash) + id.charCodeAt(i);
+                hash |= 0;
+            }
+            // Center around San Francisco and create a small spread for mock data
+            const lat = 37.7749 - (Math.abs(hash * 13 % 1000) / 20000);
+            const lng = -122.4194 + (Math.abs(hash * 31 % 1000) / 20000);
+            return { lat, lng };
+        };
+
+        stops.forEach((stop, index) => {
+            const { lat, lng } = generateCoords(stop.id);
+            const isDelivered = stop.status === 'delivered';
+            const icon = isDelivered ? greenIcon : blueIcon;
+            
+            const marker = L.marker([lat, lng], { icon: icon, title: `${index + 1}. ${stop.id}` }).addTo(map);
+            
+            marker.bindPopup(`
+                <b>${index + 1}. ${stop.id}</b><br>
+                Status: ${stop.status.toUpperCase()}<br>
+                From: ${stop.pickup}<br>
+                To: ${stop.dropoff}
+            `);
+            
+            markers[stop.id] = marker;
+            latlngs.push([lat, lng]);
+        });
+
+        if (latlngs.length > 0) {
+            L.polyline(latlngs, { color: '#64748b', weight: 3, dashArray: '5, 5' }).addTo(map);
+            map.fitBounds(latlngs, { padding: [50, 50] });
+        }
+    }
+
+    function renderDashboard(route) {
+        if (!route || !route.stops || route.stops.length === 0) {
+            loader.classList.add('hidden');
+            noRouteMessage.classList.remove('hidden');
+            dashboardContent.classList.add('hidden');
+            dashboardContent.classList.remove('grid');
+            return;
+        }
+        
+        loader.classList.add('hidden');
+        noRouteMessage.classList.add('hidden');
+        dashboardContent.classList.remove('hidden');
+        dashboardContent.classList.add('grid');
+
+        renderRouteInfo(route);
+        renderStopsList(route.stops);
+        renderMapView(route.stops);
+    }
+
+
+    async function fetchRoute() {
+        dashboardContent.classList.add('hidden');
+        dashboardContent.classList.remove('grid');
+        loader.classList.remove('hidden');
+        noRouteMessage.classList.add('hidden');
+        
+        const token = localStorage.getItem('authToken');
+
+        try {
+            const response = await fetch(`${API_URL}/route`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.status === 404) {
+                renderDashboard(null);
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch route');
+            }
+            
+            const routeData = await response.json();
+            renderDashboard(routeData);
+
+        } catch (error) {
+            loader.classList.add('hidden');
+            showModal('Error', error.message, true);
+        }
+    }
+
+    async function handleUpdateStatus(orderId, button) {
+        const originalButtonText = button.textContent;
+        button.disabled = true;
+        button.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>';
+        const token = localStorage.getItem('authToken');
+
+        try {
+            const response = await fetch(`${API_URL}/order/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ orderId: orderId, status: 'delivered' })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update status');
+            }
+            showModal('Success', `Order ${orderId} marked as delivered.`, false);
+            fetchRoute(); // Refresh the entire dashboard
+        } catch (error) {
+            showModal('Error', error.message, true);
+            button.disabled = false;
+            button.innerHTML = originalButtonText;
+        }
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
+        fetchRoute();
+    });
+
+    logoutBtn.addEventListener('click', handleLogout);
+    modalCloseBtn.addEventListener('click', hideModal);
+
+    stopsListContainer.addEventListener('click', (event) => {
+        const updateBtn = event.target.closest('.update-status-btn');
+        const viewOnMapBtn = event.target.closest('.view-on-map-btn');
+
+        if (updateBtn) {
+            const orderId = updateBtn.dataset.orderId;
+            handleUpdateStatus(orderId, updateBtn);
+        }
+
+        if (viewOnMapBtn) {
+            const stopId = viewOnMapBtn.dataset.stopId;
+            const marker = markers[stopId];
+            if (map && marker) {
+                map.flyTo(marker.getLatLng(), 15); // Zoom level 15
+                marker.openPopup();
+            }
+        }
+    });
+
+</script>
+</body>
+</html>
