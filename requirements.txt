@@ -3,3 +3,5 @@ openrouteservice
 boto3
 flask_cors
 dotenv
+python-jose
+requests

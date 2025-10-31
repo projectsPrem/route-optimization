@@ -6,7 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Delivery Logistics - Auth</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
 </head>
 <body class="bg-gray-100">
 
@@ -40,15 +48,26 @@
                 </div>
                 <div>
                     <label for="signin-password" class="text-sm font-medium text-gray-700">Password</label>
-                    <input
-                        id="signin-password"
-                        name="password"
-                        type="password"
-                        autocomplete="current-password"
-                        required
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="your password"
-                    />
+                    <div class="relative mt-1">
+                        <input
+                            id="signin-password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                            class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            placeholder="your password"
+                        />
+                        <button type="button" id="toggle-signin-password-visibility" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639l4.443-7.532A1.012 1.012 0 0 1 7.41 4h9.18a1.012 1.012 0 0 1 .931.151l4.443 7.532a1.012 1.012 0 0 1 0 .639l-4.443 7.532A1.012 1.012 0 0 1 16.59 20H7.41a1.012 1.012 0 0 1-.931-.151L2.036 12.322Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                            <svg class="w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L6.228 6.228" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="flex justify-center items-center w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition-colors disabled:bg-gray-400">
                     Sign In
@@ -81,16 +100,27 @@
                    />
                </div>
                <div>
-                   <label for="signup-password" class="text-sm font-medium text-gray-700">Password</label>
-                   <input
-                       id="signup-password"
-                       name="password"
-                       type="password"
-                       autocomplete="new-password"
-                       required
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="choose a strong password"
-                   />
+                    <label for="signup-password" class="text-sm font-medium text-gray-700">Password</label>
+                    <div class="relative mt-1">
+                        <input
+                           id="signup-password"
+                           name="password"
+                           type="password"
+                           autocomplete="new-password"
+                           required
+                           class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           placeholder="choose a strong password"
+                        />
+                        <button type="button" id="toggle-signup-password-visibility" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639l4.443-7.532A1.012 1.012 0 0 1 7.41 4h9.18a1.012 1.012 0 0 1 .931.151l4.443 7.532a1.012 1.012 0 0 1 0 .639l-4.443 7.532A1.012 1.012 0 0 1 16.59 20H7.41a1.012 1.012 0 0 1-.931-.151L2.036 12.322Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                            <svg class="w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L6.228 6.228" />
+                            </svg>
+                        </button>
+                    </div>
                </div>
                 <div>
                    <label for="signup-role" class="text-sm font-medium text-gray-700">I am a</label>
@@ -295,19 +325,32 @@
                 showModal('Sign Up Successful', result.message, false, { showConfirmation: true, email: data.email });
                 form.reset();
             } else {
-                localStorage.setItem('authToken', result.IdToken);
-                 try {
+                localStorage.setItem('authToken', result.AccessToken);
+                let userName = 'User';
+                let userRole = 'customer'; // Default role
+
+                try {
                     const payload = JSON.parse(atob(result.IdToken.split('.')[1]));
-                    localStorage.setItem('userName', payload.name);
+                    userName = payload.name || 'User';
+                    // Cognito stores roles in the 'cognito:groups' claim, which is an array.
+                    if (payload['cognito:groups'] && payload['cognito:groups'].length > 0) {
+                        userRole = payload['cognito:groups'][0].toLowerCase(); // Assume first group is role
+                    }
                 } catch (e) {
-                    console.error('Failed to decode token:', e);
-                    localStorage.setItem('userName', 'User');
+                    console.error('Failed to decode token or get role:', e);
                 }
+                
+                localStorage.setItem('userName', userName);
+                localStorage.setItem('userRole', userRole);
 
                 showModal('Login Successful', 'Redirecting to your dashboard...', false, { isRedirecting: true });
 
                 setTimeout(() => {
-                    window.location.href = 'customer.html';
+                    if (userRole === 'agent') {
+                        window.location.href = 'agent.html';
+                    } else {
+                        window.location.href = 'customer.html';
+                    }
                 }, 1500);
             }
         } catch (error) {
@@ -326,6 +369,45 @@
     signupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         handleFormSubmit(signupForm, `${API_URL}/signup`);
+    });
+
+    function setupPasswordToggle(button, input) {
+        if (!button || !input) return;
+        const eyeIcon = button.children[0];
+        const eyeSlashIcon = button.children[1];
+
+        button.addEventListener('click', () => {
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeSlashIcon.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeSlashIcon.classList.add('hidden');
+            }
+        });
+    }
+
+    const signinPasswordInput = document.getElementById('signin-password');
+    const toggleSigninPasswordBtn = document.getElementById('toggle-signin-password-visibility');
+    setupPasswordToggle(toggleSigninPasswordBtn, signinPasswordInput);
+
+    const signupPasswordInput = document.getElementById('signup-password');
+    const toggleSignupPasswordBtn = document.getElementById('toggle-signup-password-visibility');
+    setupPasswordToggle(toggleSignupPasswordBtn, signupPasswordInput);
+
+    // On page load, check if user is already logged in and redirect
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            const role = localStorage.getItem('userRole');
+            if (role === 'agent') {
+                window.location.href = 'agent.html';
+            } else {
+                window.location.href = 'customer.html';
+            }
+        }
     });
 </script>
 
