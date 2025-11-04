@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dog Breeds List</title>
+</head>
+<body>
+  <h2>All Dog Breeds</h2>
+  <button id="fetchBtn">Fetch Dog Breeds</button>
+  <ul id="breedList"></ul>
+  <p id="message"></p>
+
+  <script>
+    document.getElementById('fetchBtn').addEventListener('click', () => {
+      const apiUrl = 'https://dog.ceo/api/breeds/list/all';
+
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          const breedsObj = data.message;
+          const breedList = document.getElementById('breedList');
+          const message = document.getElementById('message');
+          breedList.innerHTML = ''; // clear previous list
+          message.textContent = '';
+
+          if (!breedsObj || Object.keys(breedsObj).length === 0) {
+            message.textContent = 'No breeds found.';
+            return;
+          }
+
+          // Render breed names, including sub-breeds as nested lists
+          for (const breed in breedsObj) {
+            const listItem = document.createElement('li');
+            listItem.textContent = breed;
+
+            const subBreeds = breedsObj[breed];
+            if (subBreeds.length > 0) {
+              const subList = document.createElement('ul');
+              subBreeds.forEach(subBreed => {
+                const subItem = document.createElement('li');
+                subItem.textContent = subBreed;
+                subList.appendChild(subItem);
+              });
+              listItem.appendChild(subList);
+            }
+
+            breedList.appendChild(listItem);
+          }
+        })
+        .catch(error => {
+          document.getElementById('message').textContent = 'Error fetching data: ' + error;
+        });
+    });
+  </script>
+</body>
+</html>
+    

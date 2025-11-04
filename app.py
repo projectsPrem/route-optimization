@@ -265,10 +265,10 @@ def create_order():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        required_fields = ['pickup_location', 'delivery_locations']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+        # required_fields = ['pickup_location', 'delivery_locations']
+        # for field in required_fields:
+        #     if field not in data:
+        #         return jsonify({'error': f'Missing required field: {field}'}), 400
         
         # Generate unique order ID
         import uuid
@@ -279,8 +279,7 @@ def create_order():
             'order_id': order_id,
             'user_id': request.user_id,
             'user_email': request.user_email,
-            'pickup_location': data['pickup_location'],
-            'delivery_locations': data['delivery_locations'],
+            'delivery_locations': data['deliveryAddress'],
             'vehicle_type': data.get('vehicle_type', 'car'),
             'priority': data.get('priority', 'standard'),
             'status': 'pending',

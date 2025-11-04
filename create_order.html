@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pree Logistics - Customer Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <h1 class="text-xl font-bold text-slate-900">Pree Logistics</h1>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M15 17h5l-1.4-1.4A2 2 0 0118 14v-3a6 6 0 00-4-5.7V5a2 2 0 00-4 0v.3a6 6 0 00-4 5.7v3c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1"/>
+                        </svg>
+                    </button>
+                    <img class="h-8 w-8 rounded-full" src="https://picsum.photos/100/100" alt="User Profile">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-6 max-w-3xl mx-auto mt-8">
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold mb-2">Customer Dashboard</h2>
+            <p class="text-slate-500">Place a new order or track your existing deliveries.</p>
+        </section>
+
+        <!-- Order Form -->
+        <section class="bg-white p-6 rounded-xl shadow-md">
+            <h3 class="text-xl font-bold text-slate-900 mb-4">Place a New Order</h3>
+            <form id="order-form" class="space-y-4">
+                <div>
+                    <label for="customerName" class="block text-sm font-medium">Customer Name</label>
+                    <input type="text" id="customerName" name="customerName" value="" 
+                        class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="John Doe" required>
+                </div>
+                <div>
+                    <label for="address" class="block text-sm font-medium">Delivery Address</label>
+                    <input type="text" id="address" name="address" value=""
+                        class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="123 Main St, Anytown, USA" required>
+                </div>
+                <div>
+                    <label for="contactNumber" class="block text-sm font-medium">Contact Number</label>
+                    <input type="tel" id="contactNumber" name="contactNumber" value="" 
+                        class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="555-123-4567" required>
+                </div>
+                <div>
+                    <label for="product" class="block text-sm font-medium">Package Size</label>
+                    <select id="product" name="product" 
+                        class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <option>Small</option>
+                        <option>Medium</option>
+                        <option>Large</option>
+                    </select>
+                </div>
+                <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-bold focus:ring-2 focus:ring-blue-500">
+                    Submit Order
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h2 class="text-xl justify-center font-semibold text-green-600 mb-2">Order Placed!</h2>
+            <p class="text-sm text-slate-700 mb-4">Your order has been successfully submitted and is being processed.</p>
+            <button id="closeModalBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+                Close
+            </button>
+        </div>
+    </div>
+    <script>
+document.getElementById('order-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = {
+        customerName: document.getElementById('customerName').value,
+        deliveryAddress: document.getElementById('address').value,
+        contact: document.getElementById('contactNumber').value,
+        packageSize: document.getElementById('product').value
+    };
+
+    // Get auth token from localStorage
+    const authToken = localStorage.getItem('authToken');
+
+    if (!authToken) {
+        alert('You are not authenticated. Please log in.');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://127.0.0.1:5001/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || `HTTP error! Status: ${response.status}`);
+        }
+
+        showSuccessModal(); // Show success modal
+        form.reset(); // Optionally clear the form
+        console.log('Order Response:', result);
+
+    } catch (error) {
+        console.error('Error submitting order:', error);
+        alert('Failed to place order, please try again.');
+    }
+});
+
+// Function to show success modal
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    modal.classList.remove('hidden');
+}
+
+// Function to close the modal
+document.getElementById('closeModalBtn').addEventListener('click', function() {
+    const modal = document.getElementById('successModal');
+    modal.classList.add('hidden');
+});
+</script>
+
+</body>
+</html>
