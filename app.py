@@ -6,12 +6,15 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv, find_dotenv
 import json
-from datetime import datetime
+from datetime import datetime 
+import datetime as dt
 from functools import wraps
 import requests
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
-
+from boto3.dynamodb.conditions import Attr
+from utility import maps_util
+import uuid
 
 
 # Load environment variables
@@ -33,6 +36,11 @@ if not all([AWS_REGION, COGNITO_USER_POOL_ID, COGNITO_APP_CLIENT_ID]):
 
 # Initialize the Cognito client
 cognito_client = boto3.client('cognito-idp', region_name=AWS_REGION)
+
+@app.route('/')
+def hello():
+    return "Hello from Elastic Beanstalk!"
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -110,7 +118,7 @@ def login():
             }
         )
         # This response contains the IdToken, AccessToken, and RefreshToken
-        print(response['AuthenticationResult']['AccessToken'])
+        # print(response['AuthenticationResult']['AccessToken'])
         return jsonify(response['AuthenticationResult']), 200
     except cognito_client.exceptions.NotAuthorizedException:
         return jsonify({'error': 'Invalid email or password.'}), 401
@@ -160,12 +168,12 @@ def confirm_account_creation():
 # 3. All the other business logic endpoints (/orders, /routes, etc.).
 
 # DynamoDB Configuration
-DYNAMODB_TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'RouteOrders')
+DYNAMODB_TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'orders')
 DYNAMODB_REGION = os.environ.get('DYNAMODB_REGION', 'ap-south-1')
 
 # Initialize DynamoDB
 dynamodb = boto3.resource('dynamodb', region_name=DYNAMODB_REGION)
-table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+orders_table = dynamodb.Table(DYNAMODB_TABLE_NAME)
 
 # Cache for Cognito public keys
 cognito_keys = None
@@ -270,39 +278,58 @@ def create_order():
         #     if field not in data:
         #         return jsonify({'error': f'Missing required field: {field}'}), 400
         
-        # Generate unique order ID
-        import uuid
+
         order_id = str(uuid.uuid4())
-        
+        print(request.data)
         # Prepare order data
+        delivery_lat, delivery_long = 0,0
+        print("---------->")
+        geocode_response = maps_util.get_geo_data(data['deliveryAddress'])
+        print("---------->")
+        delivery_lat = geocode_response["lat"]
+        delivery_long = geocode_response["lng"]
+        place_id = geocode_response["place_id"]
+        country_code = geocode_response["country_code"]
+        country = geocode_response["country"]
+        postal_code = geocode_response["postal_code"]
         order_data = {
             'order_id': order_id,
-            'user_id': request.user_id,
+            'customer_id': request.user_id,
             'user_email': request.user_email,
+            'contact_num':data["contact"],
             'delivery_locations': data['deliveryAddress'],
-            'vehicle_type': data.get('vehicle_type', 'car'),
-            'priority': data.get('priority', 'standard'),
             'status': 'pending',
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
+            'package_size':["packageSize"],
+            'assigned_driver_id': "",
+            "is_notified":False,
+            "delivered_at":None,
+            "delivery_lat": delivery_lat, 
+            "delivery_lng": delivery_long,
+            "place_id": place_id,
+            "postal_code": postal_code,
+            "country": country,
+            "country_code": country_code,
+            "distance_km":"",
+            'created_at': datetime.now(dt.timezone.utc).isoformat(),
+            'updated_at': datetime.now(dt.timezone.utc).isoformat()
         }
 
         order_data = convert_floats_to_decimal(order_data)
         
-        # Add optional fields if provided
-        optional_fields = ['notes', 'estimated_distance', 'estimated_time']
-        for field in optional_fields:
-            if field in data:
-                order_data[field] = data[field]
+        # # Add optional fields if provided
+        # optional_fields = ['notes', 'estimated_distance', 'estimated_time']
+        # for field in optional_fields:
+        #     if field in data:
+        #         order_data[field] = data[field]
         
         # Store in DynamoDB
-        response = table.put_item(Item=order_data)
-        
+        response = orders_table.put_item(Item=order_data)
+        print(response)
         return jsonify({
             'success': True,
             'message': 'Order created successfully',
             'order_id': order_id,
-            'order': order_data
+            # 'order': order_data
         }), 201
         
     except Exception as e:
@@ -315,16 +342,12 @@ def get_user_orders():
     """Get all orders for the authenticated user"""
     try:
         # Query orders by user_id
-        response = table.query(
-            IndexName='user_id-index',  # You'll need to create this GSI
-            KeyConditionExpression='user_id = :user_id',
-            ExpressionAttributeValues={
-                ':user_id': request.user_id
-            }
+        response = orders_table.scan(
+            FilterExpression=Attr('customer_id').eq(request.user_id)
         )
         
         orders = response.get('Items', [])
-        
+        print("Fetched Orders")
         return jsonify({
             'success': True,
             'orders': orders,
@@ -340,7 +363,7 @@ def get_user_orders():
 def get_order(order_id):
     """Get a specific order by ID"""
     try:
-        response = table.get_item(Key={'order_id': order_id})
+        response = orders_table.get_item(Key={'order_id': order_id})
         
         if 'Item' not in response:
             return jsonify({'error': 'Order not found'}), 404
@@ -348,10 +371,10 @@ def get_order(order_id):
         order = response['Item']
         
         # Ensure user owns this order
-        if order['user_id'] != request.user_id:
+        if order['customer_id'] != request.user_id:
             return jsonify({'error': 'Unauthorized access to order'}), 403
-        
-        return jsonify({
+        print(order)
+        return jsonify({    
             'success': True,
             'order': order
         }), 200
@@ -368,7 +391,7 @@ def update_order(order_id):
         data = request.get_json()
         
         # First check if order exists and user owns it
-        response = table.get_item(Key={'order_id': order_id})
+        response = orders_table.get_item(Key={'order_id': order_id})
         
         if 'Item' not in response:
             return jsonify({'error': 'Order not found'}), 404
@@ -393,7 +416,7 @@ def update_order(order_id):
             expression_values[':route'] = data['optimized_route']
         
         # Perform update
-        response = table.update_item(
+        response = orders_table.update_item(
             Key={'order_id': order_id},
             UpdateExpression=update_expression,
             ExpressionAttributeValues=expression_values,

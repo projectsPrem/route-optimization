@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delivery Order - Route Optimization</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; max-width: 500px; }
+    h2 { color: #333; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, button { width: 100%; padding: 10px; margin-top: 5px; }
+    #status { margin-top: 20px; color: green; }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMv_ZFpbxn7Y-nRG5gOHZAo-RfigiLTfE&libraries=places"></script>
+</head>
+<body>
+  <h2>Customer Delivery Order</h2>
+  
+  <div id="auth-section">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Enter your email" required />
+    
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password" required />
+    
+    <button onclick="login()">Login / Register</button>
+  </div>
+  
+  <div id="order-section" style="display:none;">
+    <label for="address">Delivery Address</label>
+    <input id="address" type="text" placeholder="Start typing address..." />
+    
+    <button onclick="submitOrder()">Submit Order</button>
+    
+    <div id="status"></div>
+  </div>
+  
+  <script>
+    let autocomplete;
+    function initAutocomplete() {
+      autocomplete = new google.maps.places.Autocomplete(
+        document.getElementById('address'),
+        { types: ['geocode'] }
+      );
+    }
+
+    window.onload = () => {
+      initAutocomplete();
+    };
+  
+    function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!email || !password) {
+        alert('Please enter email and password.');
+        return;
+      }
+      // Placeholder for login/registration backend call
+      alert(`Logged in as ${email}`);
+      
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('order-section').style.display = 'block';
+    }
+
+    function submitOrder() {
+      const address = document.getElementById('address').value.trim();
+      if (!address) {
+        alert('Please enter a delivery address.');
+        return;
+      }
+      
+      // Placeholder for submitting order to backend
+      document.getElementById('status').textContent = 'Order submitted successfully! Check your email for updates.';
+      
+      // Reset address field
+      document.getElementById('address').value = '';
+    }
+  </script>
+</body>
+</html>

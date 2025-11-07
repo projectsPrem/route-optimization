@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Track Order — Pree Logistics</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* small visual tweaks */
+    #map { min-height: 420px; height: 60vh; }
+    .info-row dt { min-width: 140px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+
+  <!-- Top navigation -->
+  <nav class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <h1 class="text-lg font-bold text-slate-900">Pree Logistics</h1>
+        <span class="text-sm text-slate-500"> — Track Order</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="customer.html" class="text-sm px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200">← Back</a>
+        <button id="notifBtn" class="relative p-2 rounded-full hover:bg-slate-100">
+          <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z" />
+          </svg>
+          <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page container -->
+  <main class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- Header card -->
+    <section class="bg-white rounded-xl shadow p-6 mb-6">
+      <div class="flex items-start justify-between gap-6">
+        <div>
+          <h2 id="orderTitle" class="text-2xl font-semibold text-slate-900">Order #—</h2>
+          <p id="orderSubtitle" class="text-sm text-slate-500 mt-1">Details & live map for your delivery</p>
+        </div>
+
+        <div class="text-right">
+          <div id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">Loading...</div>
+          <div class="mt-2 text-right">
+            <button id="refreshBtn" class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-sm rounded-md">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6M20 20v-6h-6" /></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Layout: left = map, right = details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Map -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+          <div id="map" class="w-full"></div>
+          <div class="p-4 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-slate-500">Map powered by Leaflet & OpenStreetMap</div>
+              <div class="text-sm text-slate-400">Tip: Zoom / pan to explore</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order details -->
+      <aside class="bg-white rounded-xl shadow p-6 space-y-4">
+        <h3 class="text-lg font-semibold">Order Details</h3>
+
+        <dl class="divide-y divide-slate-100 text-sm text-slate-700">
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Order ID</dt>
+            <dd id="detailOrderId" class="ml-4 flex-1 text-slate-900">—</dd>
+          </div>
+
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Customer</dt>
+            <dd id="detailCustomer" class="ml-4 flex-1">—</dd>
+          </div>
+
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Contact</dt>
+            <dd id="detailContact" class="ml-4 flex-1">—</dd>
+          </div>
+
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Pickup Address</dt>
+            <dd id="detailPickup" class="ml-4 flex-1">—</dd>
+          </div>
+
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Delivery Address</dt>
+            <dd id="detailDelivery" class="ml-4 flex-1">—</dd>
+          </div>
+
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Items</dt>
+            <dd id="detailItems" class="ml-4 flex-1">—</dd>
+          </div>
+
+          <div class="py-3 flex info-row">
+            <dt class="font-medium text-slate-600">Placed At</dt>
+            <dd id="detailPlacedAt" class="ml-4 flex-1 text-slate-500">—</dd>
+          </div>
+        </dl>
+
+        <div class="pt-2">
+          <button id="contactBtn" class="w-full inline-flex justify-center gap-2 items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
+            Contact Courier
+          </button>
+        </div>
+
+        <div class="pt-2 text-xs text-slate-400">
+          Status updates are pulled when you open/refresh this page.
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    // CONFIG: change if your API base differs
+    const API_BASE = 'http://127.0.0.1:5001'; // <- use http for local dev unless you have SSL
+    // Elements
+    const orderTitle = document.getElementById('orderTitle');
+    const orderSubtitle = document.getElementById('orderSubtitle');
+    const statusBadge = document.getElementById('statusBadge');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    const detailOrderId = document.getElementById('detailOrderId');
+    const detailCustomer = document.getElementById('detailCustomer');
+    const detailContact = document.getElementById('detailContact');
+    const detailPickup = document.getElementById('detailPickup');
+    const detailDelivery = document.getElementById('detailDelivery');
+    const detailItems = document.getElementById('detailItems');
+    const detailPlacedAt = document.getElementById('detailPlacedAt');
+
+    // Map variables
+    let map, pickupMarker, deliveryMarker, routeLine;
+
+    // Get orderId from query string
+    const params = new URLSearchParams(window.location.search);
+    const order_id = params.get('orderId');
+
+    // Simple helper to set status badge classes/text
+    function setStatus(status) {
+      const s = (status || 'Unknown').toString();
+      statusBadge.textContent = s;
+      statusBadge.className = 'inline-block px-3 py-1 rounded-full text-sm font-semibold';
+      if (s.toLowerCase().includes('delivered')) {
+        statusBadge.classList.add('bg-green-100', 'text-green-800');
+      } else if (s.toLowerCase().includes('out for') || s.toLowerCase().includes('on the way')) {
+        statusBadge.classList.add('bg-blue-100', 'text-blue-800');
+      } else if (s.toLowerCase().includes('pending')) {
+        statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+      } else {
+        statusBadge.classList.add('bg-slate-100', 'text-slate-800');
+      }
+    }
+
+    // Put markers and optional route
+    function renderRoute(pickup, delivery) {
+      // Remove old
+      if (pickupMarker) map.removeLayer(pickupMarker);
+      if (deliveryMarker) map.removeLayer(deliveryMarker);
+      if (routeLine) map.removeLayer(routeLine);
+
+      // Add markers
+      if (pickup && pickup.lat && pickup.lng) {
+        pickupMarker = L.marker([pickup.lat, pickup.lng]).addTo(map).bindPopup('Pickup: ' + (pickup.label || 'Pickup'));
+      }
+      if (delivery && delivery.lat && delivery.lng) {
+        deliveryMarker = L.marker([delivery.lat, delivery.lng], {icon: L.icon({iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png', iconSize: [25,41], iconAnchor: [12,41]})}).addTo(map).bindPopup('Delivery: ' + (delivery.label || 'Delivery'));
+      }
+
+      // Draw straight polyline (simple). For real driving route, use Directions API.
+      if (pickup && delivery && pickup.lat && pickup.lng && delivery.lat && delivery.lng) {
+        routeLine = L.polyline([[pickup.lat, pickup.lng], [delivery.lat, delivery.lng]], { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(map);
+        const group = new L.featureGroup([pickupMarker, deliveryMarker]);
+        map.fitBounds(group.getBounds().pad(0.2));
+      } else if (pickupMarker) {
+        map.setView([pickup.lat, pickup.lng], 13);
+      } else if (deliveryMarker) {
+        map.setView([delivery.lat, delivery.lng], 13);
+      }
+    }
+
+    // Fill order info into UI
+    function populateDetails(order) {
+
+      orderTitle.textContent = `Order #${order.order_id || order.order_id || '—'}`;
+      orderSubtitle.textContent = (order.status ? `Status: ${order.status}` : 'Order tracking details');
+      detailOrderId.textContent = order.order_id || order.order_id || '—';
+      detailCustomer.textContent = order.cu || order.customer || '—';
+      detailContact.textContent = order.contact || order.contactNumber || '—';
+      detailPickup.textContent = order.pickupAddress || order.fromAddress || order.pickup || '—';
+      detailDelivery.textContent = order.deliveryAddress || order.toAddress || order.delivery || '—';
+      detailItems.textContent = (Array.isArray(order.items) ? order.items.join(', ') : (order.items || order.packageSize || '—'));
+      detailPlacedAt.textContent = order.createdAt ? new Date(order.createdAt).toLocaleString() : (order.placedAt ? new Date(order.placedAt).toLocaleString() : '—');
+
+      setStatus(order.status);
+
+      // map data shapes: prefer order.pickupLat/order.pickupLng etc.
+      const pickup = {
+        lat: order.pickupLat || (order.pickup && order.pickup.lat) || null,
+        lng: order.pickupLng || (order.pickup && order.pickup.lng) || null,
+        label: order.pickupAddress || (order.pickup && order.pickup.label)
+      };
+      const delivery = {
+        lat: order.deliveryLat || (order.delivery && order.delivery.lat) || null,
+        lng: order.deliveryLng || (order.delivery && order.delivery.lng) || null,
+        label: order.deliveryAddress || (order.delivery && order.delivery.label)
+      };
+
+      renderRoute(pickup, delivery);
+    }
+
+    // Fetch order details from backend
+    async function fetchOrder() {
+      if (!order_id) {
+        alert('No orderId provided in URL.');
+        return;
+      }
+
+      const authToken = localStorage.getItem('authToken');
+      try {
+        const res = await fetch(`http://127.0.0.1:5001/api/orders/${order_id}`, {
+          method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({message: res.statusText}));
+          throw new Error(err.message || 'Failed to fetch order');
+        }
+
+        const order = await res.json();
+        populateDetails(order.order);
+
+      } catch (err) {
+        console.error('Fetch order error:', err);
+        // show friendly error on UI
+        orderTitle.textContent = 'Order not found';
+        orderSubtitle.textContent = err.message || 'Failed to load order details';
+        setStatus('Unknown');
+      }
+    }
+
+    // Contact courier (example: open tel: link if phone available)
+    document.getElementById('contactBtn').addEventListener('click', () => {
+      const phone = detailContact.textContent;
+      if (phone && phone !== '—') {
+        window.location.href = `tel:${phone}`;
+      } else {
+        alert('No contact number available for this order.');
+      }
+    });
+
+    // Refresh button
+    refreshBtn.addEventListener('click', () => {
+      fetchOrder();
+    });
+
+    // Simple notification badge behavior (fetch unread count)
+    async function fetchNotifCount() {
+      const token = localStorage.getItem('authToken');
+      const badge = document.getElementById('notifBadge');
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications/unread-count`, {
+          method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+        });
+        if (!res.ok) throw new Error('No count');
+        const data = await res.json();
+        const count = Number(data.count || 0);
+        if (count > 0) {
+          badge.textContent = count;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      } catch (e) {
+        // silent fail: keep badge hidden
+        badge.classList.add('hidden');
+      }
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchOrder();
+    //   fetchNotifCount();
+    });
+  </script>
+</body>
+</html>

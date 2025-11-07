@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delivery Partner Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-white min-h-screen">
+  <div class="max-w-7xl mx-auto py-10 px-4">
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-4xl font-extrabold text-slate-900 mb-1">Delivery Partner Dashboard</h1>
+        <p class="text-lg text-slate-500">
+          Manage your assigned deliveries (<span id="active-count">0</span> active)
+        </p>
+      </div>
+      <div class="flex space-x-3">
+        <button class="px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700">
+          Refresh
+        </button>
+        <button class="px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700">
+          Home
+        </button>
+      </div>
+    </header>
+
+    <main class="flex gap-6 h-[600px]">
+      <!-- Orders List -->
+      <section class="w-2/5 flex flex-col border border-gray-200 rounded-lg shadow-md bg-white overflow-hidden">
+        <div class="p-4 border-b border-gray-200">
+          <h2 class="font-semibold text-lg text-slate-900">Select Orders</h2>
+        </div>
+        <form id="orders-form" class="flex flex-col flex-grow p-4 overflow-y-auto">
+            <div id="orders-list" class="flex flex-col space-y-4 max-h-[400px] overflow-y-auto"></div>
+
+            <div class="mt-6 border border-blue-300 bg-blue-50 rounded p-3 min-h-[80px] max-h-[120px] overflow-y-auto">
+                <div class="font-semibold mb-2 text-blue-700">Selected Orders:</div>
+                <ul id="selected-orders" class="list-disc list-inside text-blue-600"></ul>
+            </div>
+
+            <button 
+                type="button" 
+                id="optimize-route" 
+                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded shadow font-semibold transition"
+            >
+                Optimize Route
+            </button>
+            </form>
+
+      </section>
+
+      <!-- Map -->
+      <section class="w-3/5 rounded-lg border border-gray-200 shadow-md bg-white p-4">
+        <div id="map" class="w-full h-full rounded-lg"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Sample orders list (Replace with dynamic data)
+    const orders = [
+      { order_id: 'ORD1', delivery_locations: '123 Main St', contact_num: '555-1234', package_size: ['Small'], vehicle_type: 'Car', priority: 'Standard', status: 'Pending', distance_km: 4.2, created_at: '2025-11-06T08:00:00Z' },
+      { order_id: 'ORD2', delivery_locations: '456 Oak Ave', contact_num: '555-5678', package_size: ['Medium'], vehicle_type: 'Bike', priority: 'High', status: 'Pending', distance_km: 5.3, created_at: '2025-11-06T10:30:00Z' },
+      { order_id: 'ORD3', delivery_locations: '789 Pine Rd', contact_num: '555-8765', package_size: ['Large'], vehicle_type: 'Car', priority: 'Standard', status: 'Pending', distance_km: 6.1, created_at: '2025-11-06T12:00:00Z' }
+    ];
+
+    const ordersList = document.getElementById('orders-list');
+    const selectedOrdersUl = document.getElementById('selected-orders');
+    const activeCount = document.getElementById('active-count');
+    const selectedOrders = new Map();
+
+    // Format ISO date string to local date time string
+    function formatDate(isoString) {
+      return new Date(isoString).toLocaleString();
+    }
+
+    function createOrderCard(order) {
+      const div = document.createElement('div');
+      div.className = "bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg cursor-pointer flex flex-col";
+
+      div.innerHTML = `
+        <label class="flex space-x-3 cursor-pointer">
+          <input type="checkbox" class="w-5 h-5 mt-1" />
+          <div class="flex-grow">
+            <h3 class="flex items-center space-x-2 font-semibold text-slate-900 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.104 0 2-.9 2-2s-.896-2-2-2-2 .9-2 2 .896 2 2 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21C9.238 18.552 4 13.528 4 8a8 8 0 0116 0c0 5.528-5.238 10.552-8 13z" />
+              </svg>
+              <span>Delivery Address: ${order.delivery_locations}</span>
+            </h3>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-slate-700 text-sm">
+              <div><span class="font-semibold">Contact:</span> ${order.contact_num}</div>
+              <div><span class="font-semibold">Package Size:</span> ${order.package_size.join(", ")}</div>
+              <div><span class="font-semibold">Status:</span> ${order.status}</div>
+              <div><span class="font-semibold">Distance (km):</span> ${order.distance_km}</div>
+              <div class="col-span-2 text-gray-400"><span class="font-semibold">Created:</span> ${formatDate(order.created_at)}</div>
+            </div>
+          </div>
+        </label>
+      `;
+
+      const checkbox = div.querySelector('input[type="checkbox"]');
+      checkbox.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          selectedOrders.set(order.order_id, order);
+        } else {
+          selectedOrders.delete(order.order_id);
+        }
+        updateSelectedOrdersUI();
+      });
+
+      return div;
+    }
+
+    function updateSelectedOrdersUI() {
+      // Update active count
+      activeCount.textContent = selectedOrders.size.toString();
+
+      // Update list below orders
+      selectedOrdersUl.innerHTML = '';
+      for (const order of selectedOrders.values()) {
+        const li = document.createElement('li');
+        li.textContent = `${order.order_id} - ${order.delivery_locations}`;
+        selectedOrdersUl.appendChild(li);
+      }
+    }
+
+    // Render orders on load
+    orders.forEach(order => {
+      const card = createOrderCard(order);
+      ordersList.appendChild(card);
+    });
+
+    // Google maps init with geolocation or fallback
+    window.initMap = function () {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const map = new google.maps.Map(document.getElementById("map"), {
+              zoom: 14,
+              center: { lat, lng },
+            });
+            new google.maps.Marker({
+              position: { lat, lng },
+              map,
+              title: "You are here",
+            });
+          },
+          () => {
+            const defaultCenter = { lat: 28.6139, lng: 77.209 };
+            const map = new google.maps.Map(document.getElementById("map"), {
+              zoom: 12,
+              center: defaultCenter,
+            });
+          }
+        );
+      } else {
+        const defaultCenter = { lat: 28.6139, lng: 77.209 };
+        const map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 12,
+          center: defaultCenter,
+        });
+      }
+    };
+
+    // Optimize Route Button handler
+    document.getElementById('optimize-route').addEventListener('click', () => {
+      if (selectedOrders.size === 0) {
+        alert('Please select at least one order');
+        return;
+      }
+      const selectedOrdersArray = Array.from(selectedOrders.values());
+      console.log("Route optimization request for:", selectedOrdersArray);
+      // TODO: Call your route optimization API with selectedOrdersArray here
+    });
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMv_ZFpbxn7Y-nRG5gOHZAo-RfigiLTfE&callback=initMap"></script>
+</body>
+</html>
+
+
+
+  

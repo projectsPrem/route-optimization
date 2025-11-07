@@ -5,25 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pree Logistics - Customer Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMv_ZFpbxn7Y-nRG5gOHZAo-RfigiLTfE&libraries=places"></script>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <h1 class="text-xl font-bold text-slate-900">Pree Logistics</h1>
-                <div class="flex items-center space-x-4">
-                    <button class="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M15 17h5l-1.4-1.4A2 2 0 0118 14v-3a6 6 0 00-4-5.7V5a2 2 0 00-4 0v.3a6 6 0 00-4 5.7v3c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1"/>
-                        </svg>
+ <nav class="justify-between bg-white border-b border-gray-200 px-8 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <h1 class="text-xl font-bold text-slate-900">Pree Logistics</h1>
+            <div class="flex items-center space-x-4">
+                <!-- Notification Bell -->
+                <div class="relative">
+                    <button id="notifBtn" class="relative p-2 rounded-full hover:bg-gray-200 focus:outline-none">
+                        <span class="material-icons text-3xl text-gray-700">notifications</span>
+                        <span id="notifBadge" class="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
                     </button>
-                    <img class="h-8 w-8 rounded-full" src="https://picsum.photos/100/100" alt="User Profile">
+
+                    <!-- Notification Dropdown -->
+                    <div id="notifDropdown" class="absolute right-0 mt-2 w-72 bg-white border border-gray-300 rounded-lg shadow-lg hidden">
+                        <div class="p-4 border-b">
+                            <h3 class="text-lg font-semibold">Notifications</h3>
+                        </div>
+                        <div id="notifContent" class="max-h-60 overflow-y-auto">
+                            <p class="p-4 text-gray-500 text-sm text-center">No notifications</p>
+                        </div>
+                        <div class="p-2 text-center border-t">
+                            <button id="markReadBtn" class="text-blue-500 text-sm hover:underline">Mark all as read</button>
+                        </div>
+                    </div>
                 </div>
+
+                <button id="logout-btn" class="px-4 py-2 bg-gray-200 text-gray-800 border border-gray-400 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition-colors">Logout</button>
             </div>
         </div>
-    </header>
+    </div>
+</nav>
 
     <!-- Main Content -->
     <main class="p-6 max-w-3xl mx-auto mt-8">
@@ -85,6 +103,26 @@
         </div>
     </div>
     <script>
+
+        function checkAuth() {
+        const token = localStorage.getItem("authToken");
+        const userName = localStorage.getItem("userName");
+        if (!token) {
+          window.location.href = "index.html";
+        } else {
+            const welcomeMessage = document.getElementById('welcome-message');
+          welcomeMessage.textContent = `Welcome, ${userName || "User"}!`;
+        }
+      }
+
+      const logoutBtn = document.getElementById("logout-btn");
+      document.addEventListener("DOMContentLoaded", checkAuth);
+      logoutBtn.addEventListener("click", handleLogout);
+      function handleLogout() {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userName");
+        window.location.href = "index.html";
+      }
 document.getElementById('order-form').addEventListener('submit', async function(event) {
     event.preventDefault();
     const form = event.target;
@@ -139,7 +177,71 @@ function showSuccessModal() {
 document.getElementById('closeModalBtn').addEventListener('click', function() {
     const modal = document.getElementById('successModal');
     modal.classList.add('hidden');
+    window.location.href = 'customer.html';
 });
+
+
+const notifBtn = document.getElementById("notifBtn");
+    const notifDropdown = document.getElementById("notifDropdown");
+    const notifBadge = document.getElementById("notifBadge");
+    const notifContent = document.getElementById("notifContent");
+    const markReadBtn = document.getElementById("markReadBtn");
+
+    notifBtn.addEventListener("click", () => {
+        notifDropdown.classList.toggle("hidden");
+        fetchNotifications();
+    });
+
+    async function fetchNotifications() {
+        const authToken = localStorage.getItem('authToken');
+
+        // Dummy example notifications
+        const notifications = [
+            { message: "Order #1001 has been delivered", timestamp: "2025-11-04T12:15:00Z" },
+            { message: "Order #1002 is out for delivery", timestamp: "2025-11-04T13:45:00Z" }
+        ];
+
+        if (notifications.length > 0) {
+            notifBadge.textContent = notifications.length;
+            notifBadge.classList.remove("hidden");
+            notifContent.innerHTML = notifications
+                .map(
+                    (n) => `
+                <div class="p-4 border-b">
+                    <p class="text-sm text-gray-800">${n.message}</p>
+                    <span class="text-xs text-gray-500">${new Date(n.timestamp).toLocaleString()}</span>
+                </div>
+                `
+                )
+                .join("");
+        } else {
+            notifBadge.classList.add("hidden");
+            notifContent.innerHTML = `<p class="p-4 text-gray-500 text-sm text-center">No notifications</p>`;
+        }
+    }
+
+    markReadBtn.addEventListener("click", () => {
+        notifBadge.classList.add("hidden");
+        notifContent.innerHTML = `<p class="p-4 text-gray-500 text-sm text-center">No notifications</p>`;
+    });
+
+    window.addEventListener("load", () => {
+    fetchNotifications();
+});
+
+    //GoogleMap autocomplete 
+    let autocomplete;
+    function initAutocomplete() {
+      autocomplete = new google.maps.places.Autocomplete(
+        document.getElementById('address'),
+        { types: ['geocode'] }
+      );
+      console.log(autocomplete)
+    }
+
+    window.onload = () => {
+      initAutocomplete();
+    };
 </script>
 
 </body>

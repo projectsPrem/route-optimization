@@ -1,0 +1,12 @@
+customer - order Details, refresh, map
+
+delivery - orders data mapping, optimization, show route on map
+
+SNS - emailnotification
+s3 - store invoice 
+system manager - for secret keys
+cognito - auth
+dynamodb - storage
+ebs - computing
+cloudwatch - monitoring
+Pipeline

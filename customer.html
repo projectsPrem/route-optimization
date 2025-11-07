@@ -1,320 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>SwiftRoute Logistics - All Orders</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SwiftRoute Logistics - All Orders</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <nav class="justify-between bg-white border-b border-gray-200 px-8 py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <h1 class="text-xl font-bold text-slate-900">Pree Logistics</h1>
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-4">
+              <span id="welcome-message" class="hidden sm:block"></span>
+            </div>
+            <!-- Notification Bell -->
+            <div class="relative">
+              <button
+                id="notifBtn"
+                class="relative p-2 rounded-full hover:bg-gray-200 focus:outline-none"
+              >
+                <span class="material-icons text-3xl text-gray-700"
+                  >notifications</span
+                >
+                <span
+                  id="notifBadge"
+                  class="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full hidden"
+                  >0</span
+                >
+              </button>
 
-  <!-- Top Navigation -->
-  <nav class="flex items-center justify-between bg-white border-b border-gray-200 px-8 py-6">
-    <div class="flex items-center gap-3">
-      <span class="font-semibold text-xl text-gray-800">preethi Logistics</span>
-    </div>
-    <button id="logout-btn" class="px-4 py-2 bg-gray-200 text-gray-800 border border-gray-400 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition-colors">Logout</button>
-  </nav>
+              <!-- Notification Dropdown -->
+              <div
+                id="notifDropdown"
+                class="absolute right-0 mt-2 w-72 bg-white border border-gray-300 rounded-lg shadow-lg hidden"
+              >
+                <div class="p-4 border-b">
+                  <h3 class="text-lg font-semibold">Notifications</h3>
+                </div>
+                <div id="notifContent" class="max-h-60 overflow-y-auto">
+                  <p class="p-4 text-gray-500 text-sm text-center">
+                    No notifications
+                  </p>
+                </div>
+                <div class="p-2 text-center border-t">
+                  <button
+                    id="markReadBtn"
+                    class="text-blue-500 text-sm hover:underline"
+                  >
+                    Mark all as read
+                  </button>
+                </div>
+              </div>
+            </div>
 
-<main class="max-w-full mx-auto mt-10 bg-white rounded-xl shadow-lg p-8">
-  <div class="flex justify-between items-start">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-800 mb-2">All Orders</h1>
-      <p class="text-gray-500 text-base">A comprehensive list of all your active and past orders.</p>
-    </div>
-    
-    <button id="createOrder-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow">
-      Create Order
-    </button>
-  </div>
+            <button
+              id="logout-btn"
+              class="px-4 py-2 bg-gray-200 text-gray-800 border border-gray-400 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
 
-  <div class="relative overflow-y-auto h-96 shadow-md sm:rounded-lg mt-6">
-    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-        <tr>
-            <th class="w-24 px-6 py-3">Order Id</th>
-            <th class="w-40 px-6 py-3">Contact Number</th>
-            <th class="w-64 px-6 py-3">Address</th>
-            <th class="w-48 px-6 py-3">Estimated Delivery</th>
-            <th class="w-32 px-6 py-3">Package Type</th>
-            <th class="w-24 px-6 py-3">Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Example row -->
-        <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr>
-         <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr>
-         <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr> <tr class="border-b last:border-b-0 hover:bg-gray-50">
-            <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
-            <td class="py-3 px-6 truncate" title="91283792">91283792</td>
-            <td class="py-3 px-6 truncate" title="4/23, afdasdfads strt, porur, chennai">4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai</td>
-            <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
-            <td class="py-3 px-6 truncate" title="Large, Medium">Large, Medium</td>
-            <td class="py-3 px-6">
-                <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-        </tr>
-    </tbody>
-</table>
+    <main class="max-w-full mx-auto mt-10 bg-white rounded-xl shadow-lg p-8">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">All Orders</h1>
+          <p class="text-gray-500 text-base">
+            A comprehensive list of all your active and past orders.
+          </p>
+        </div>
 
-</div>
+        <button
+          id="createOrder-btn"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow"
+        >
+          Create Order
+        </button>
+      </div>
 
-  </main>
+      <div class="relative overflow-y-auto h-96 shadow-md sm:rounded-lg mt-6">
+        <table
+          class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+        >
+          <!-- id="orders-body" -->
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th class="w-24 px-6 py-3">Order Id</th>
+              <th class="w-40 px-6 py-3">Contact Number</th>
+              <th class="w-64 px-6 py-3">Address</th>
+              <th class="w-48 px-6 py-3">Estimated Delivery</th>
+              <th class="w-32 px-6 py-3">Package Type</th>
+              <th class="w-24 px-6 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body">
+            <!-- Example row -->
+            <tr class="border-b last:border-b-0 hover:bg-gray-50">
+              <td class="py-3 px-6 truncate" title="#234234234">#2134234234</td>
+              <td class="py-3 px-6 truncate" title="91283792">91283792</td>
+              <td
+                class="py-3 px-6 truncate"
+                title="4/23, afdasdfads strt, porur, chennai"
+              >
+                4/23,adfkjasdflkajdflkajsdflkjsdaf porur, chennai
+              </td>
+              <td class="py-3 px-6 truncate" title="21/23/2035">21/23/2035</td>
+              <td class="py-3 px-6 truncate" title="Large, Medium">
+                Large, Medium
+              </td>
+              <td class="py-3 px-6">
+                <span
+                  class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm"
+                  >Completed</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
 
-  <!-- API Data Script -->
-  <script>
-    // Replace with your real API endpoint:
-    // const API_URL = 'https://api.example.com/orders';
+    <!-- API Data Script -->
+    <script>
+      // Replace with your real API endpoint:
+      const API_URL = "http://127.0.0.1:5001/api/orders";
 
-    function checkAuth() {
-        const token = localStorage.getItem('authToken');
-        const userName = localStorage.getItem('userName');
+      function checkAuth() {
+        const token = localStorage.getItem("authToken");
+        const userName = localStorage.getItem("userName");
         if (!token) {
-            window.location.href = 'index.html';
+          window.location.href = "index.html";
         } else {
-            welcomeMessage.textContent = `Welcome, ${userName || 'User'}!`;
+          const welcomeMessage = document.getElementById("welcome-message");
+          welcomeMessage.textContent = `Welcome, ${userName || "User"}!`;
         }
-    }
-
-    const logoutBtn = document.getElementById('logout-btn');
-    document.addEventListener('DOMContentLoaded', checkAuth);
-    logoutBtn.addEventListener('click', handleLogout);
-    function handleLogout() {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userName');
-        window.location.href = 'index.html';
-    }
-    
-    const createOrderBtn = document.getElementById('createOrder-btn');
-    createOrderBtn.addEventListener('click', gotToCreateOrder);
-    function gotToCreateOrder() {
-        window.location.href = 'create_order.html';
-    }
-
-    async function fetchOrders() {
-      try {
-        // const res = await fetch(API_URL);
-        // const orders = await res.json();
-        const tbody = document.getElementById('orders-body');
-        tbody.innerHTML = '';
-        // orders.forEach(order => {
-          const tr = document.createElement('tr');
-          tr.className = 'border-b last:border-b-0 hover:bg-gray-50';
-          tr.innerHTML = `
-            <td class="py-3 px-6 ">#234234234</td>
-            <td class="py-3 px-6 ">91283792</td>
-            <td class="py-3 px-6 ">4/23, afdasdfads strt, porur, chennai</td>
-            <td class="py-3 px-6 ">21/23/2035</td>
-            <td class="py-3 px-6 ">Large, Medium</td>
-            <td class="py-3 px-6 ">
-              <span class="inline-block px-3 py-1 rounded-2xl bg-yellow-100 text-yellow-700 font-semibold text-sm">Completed</span>
-            </td>
-          `;
-          tbody.appendChild(tr);
-    //     });
-      } catch (e) {
-        document.getElementById('orders-body').innerHTML =
-          '<tr><td colspan="6" class="text-center py-6 text-gray-400">Failed to load orders</td></tr>';
       }
-    }
-    document.addEventListener('DOMContentLoaded', fetchOrders);
-  </script>
-</body>
+
+      const logoutBtn = document.getElementById("logout-btn");
+      document.addEventListener("DOMContentLoaded", checkAuth);
+      logoutBtn.addEventListener("click", handleLogout);
+      function handleLogout() {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userName");
+        window.location.href = "index.html";
+      }
+
+      const createOrderBtn = document.getElementById("createOrder-btn");
+      createOrderBtn.addEventListener("click", gotToCreateOrder);
+      function gotToCreateOrder() {
+        window.location.href = "create_order.html";
+      }
+
+      async function fetchOrders() {
+        try {
+          const authToken = localStorage.getItem("authToken");
+
+          const response = await fetch(API_URL, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              result.message || `HTTP error! Status: ${response.status}`
+            );
+          }
+
+          let orders = await response.json();
+          orders = orders["orders"];
+          const tbody = document.getElementById("orders-body");
+          tbody.innerHTML = "";
+
+          orders.forEach((order) => {
+            const tr = document.createElement("tr");
+            tr.className = "border-b last:border-b-0 hover:bg-gray-50";
+            tr.setAttribute("data-id", order.id); // Store order ID in row
+            tr.innerHTML = `
+                    <td class="py-3 px-6">${order.order_id}</td>
+                    <td class="py-3 px-6">${order.user_email || "N/A"}</td>
+                    <td class="py-3 px-6">${order.delivery_locations}</td>
+                    <td class="py-3 px-6">${new Date(
+                      order.date
+                    ).toLocaleDateString()}</td>
+                    <td class="py-3 px-6">${order.packageSize}</td>
+                    <td class="py-3 px-6">
+                    <span class="inline-block px-3 py-1 rounded-2xl
+                        ${
+                          order.status === "Delivered"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }
+                        font-semibold text-sm">${order.status}</span>
+                    </td>
+                `;
+            tbody.appendChild(tr);
+
+            tr.addEventListener("click", () => redirectToTrackPage(order.order_id));
+          });
+          console.log(orders)
+          if (orders.length === 0){
+            document.getElementById("orders-body").innerHTML ='<tr><td></td></tr> <tr><td colspan="6" class="text-center py-6 text-lg text-gray-400">😇 Make Your First Order by clicking "Create Order"</td></tr>';
+          }
+        } catch (e) {
+          console.log(e);
+          document.getElementById("orders-body").innerHTML =
+            '<tr><td colspan="6" class="text-center py-6 text-gray-400">Failed to load orders</td></tr>';
+        }
+      }
+      document.addEventListener("DOMContentLoaded", fetchOrders);
+      function redirectToTrackPage(orderId) {
+            window.location.href = `track.html?orderId=${orderId}`;
+            }
+
+    </script>
+  </body>
 </html>

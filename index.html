@@ -6,15 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Delivery Logistics - Auth</title>
     <script src="https://cdn.tailwindcss.com"></script>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
-  }
-}
-</script>
 </head>
 <body class="bg-gray-100">
 
@@ -214,7 +205,7 @@
         if (options.showConfirmation) {
             confirmationSection.classList.remove('hidden');
             modalConfirmBtn.classList.remove('hidden');
-            confirmationEmailInput.value = options.email;
+            confirmationEmailInput.value = options.email.trim();
             modalCloseBtn.textContent = 'Cancel';
         } else {
             confirmationSection.classList.add('hidden');
@@ -395,7 +386,7 @@
 
     const signupPasswordInput = document.getElementById('signup-password');
     const toggleSignupPasswordBtn = document.getElementById('toggle-signup-password-visibility');
-    setupPasswordToggle(toggleSignupPasswordBtn, signupPasswordInput);
+    setupPasswordToggle(toggleSignupPasswordBtn, signupPasswordInput.trim());
 
     // On page load, check if user is already logged in and redirect
     document.addEventListener('DOMContentLoaded', () => {
